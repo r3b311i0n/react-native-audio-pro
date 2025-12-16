@@ -1,9 +1,14 @@
 import type { AudioProConfigureOptions } from './types';
 
 /**
- * Default seek interval in milliseconds (30 seconds)
+ * Default fast-forward seek interval in milliseconds (30 seconds)
  */
-export const DEFAULT_SEEK_MS = 30000;
+export const DEFAULT_SEEK_FORWARD_MS = 30000;
+
+/**
+ * Default rewind seek interval in milliseconds (30 seconds)
+ */
+export const DEFAULT_SEEK_BACK_MS = 30000;
 
 /**
  * Content type for audio playback
@@ -96,6 +101,8 @@ export const DEFAULT_CONFIG: AudioProConfigureOptions = {
 	showNextPrevControls: true,
 	/** Whether to show skip forward/back controls in notification */
 	showSkipControls: false,
-	/** Interval in milliseconds for skip forward/back actions */
-	skipIntervalMs: DEFAULT_SKIP_INTERVAL_MS,
+	/** Interval in milliseconds for skip forward controls */
+	skipForwardMs: DEFAULT_SKIP_INTERVAL_MS,
+	/** Interval in milliseconds for skip backward controls */
+	skipBackMs: DEFAULT_SKIP_INTERVAL_MS,
 };

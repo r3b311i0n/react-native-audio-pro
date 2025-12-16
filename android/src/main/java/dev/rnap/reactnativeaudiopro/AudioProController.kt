@@ -60,7 +60,8 @@ object AudioProController {
 	var settingAudioContentType: Int = C.AUDIO_CONTENT_TYPE_MUSIC
 	var settingShowNextPrevControls: Boolean = true
 	var settingShowSkipControls: Boolean = false
-	var settingSkipIntervalMs: Long = 30000L
+	var settingSkipForwardMs: Long = 30000L
+	var settingSkipBackMs: Long = 30000L
 
 	var headersAudio: Map<String, String>? = null
 	var headersArtwork: Map<String, String>? = null
@@ -160,7 +161,8 @@ object AudioProController {
 		val progressIntervalMs: Long,
 		val showNextPrevControls: Boolean,
 		val showSkipControls: Boolean,
-		val skipIntervalMs: Long,
+		val skipForwardMs: Long,
+		val skipBackMs: Long,
 	)
 
 	// Extracts and applies play options from JS before playback
@@ -185,8 +187,10 @@ object AudioProController {
 			if (options.hasKey("showNextPrevControls")) options.getBoolean("showNextPrevControls") else true
 		val showSkip =
 			if (options.hasKey("showSkipControls")) options.getBoolean("showSkipControls") else true
-		val skipIntervalMs =
-			if (options.hasKey("skipIntervalMs")) options.getDouble("skipIntervalMs").toLong() else 30000L
+		val skipForwardMs =
+			if (options.hasKey("skipForwardMs")) options.getDouble("skipForwardMs").toLong() else 30000L
+		val skipBackMs =
+			if (options.hasKey("skipBackMs")) options.getDouble("skipBackMs").toLong() else 30000L
 
 		// Warn if showNextPrevControls is changed after session initialization
 		if (::engineBrowserFuture.isInitialized && enginerBrowser != null && showControls != settingShowNextPrevControls) {
@@ -227,7 +231,8 @@ object AudioProController {
 		settingProgressIntervalMs = progressInterval
 		settingShowNextPrevControls = resolvedShowNextPrev
 		settingShowSkipControls = resolvedShowSkip
-		settingSkipIntervalMs = skipIntervalMs
+		settingSkipForwardMs = skipForwardMs
+		settingSkipBackMs = skipBackMs
 
 		return PlaybackOptions(
 			contentType,
@@ -240,7 +245,8 @@ object AudioProController {
 			progressInterval,
 			resolvedShowNextPrev,
 			resolvedShowSkip,
-			skipIntervalMs,
+			skipForwardMs,
+			skipBackMs,
 		)
 	}
 
@@ -291,7 +297,8 @@ object AudioProController {
 				"progressIntervalMs=${opts.progressIntervalMs} " +
 				"showNextPrevControls=${opts.showNextPrevControls} " +
 				"showSkipControls=${opts.showSkipControls} " +
-				"skipIntervalMs=${opts.skipIntervalMs}"
+				"skipForwardMs=${opts.skipForwardMs} " +
+				"skipBackMs=${opts.skipBackMs}"
 		)
 
 		val url = track.getString("url") ?: run {

@@ -134,12 +134,12 @@ open class AudioProMediaLibrarySessionCallback : MediaLibraryService.MediaLibrar
 			}
 
 			CUSTOM_COMMAND_SKIP_FORWARD -> {
-				AudioProController.seekForward(AudioProController.settingSkipIntervalMs)
+				AudioProController.seekForward(AudioProController.settingSkipForwardMs)
 				return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
 			}
 
 			CUSTOM_COMMAND_SKIP_BACKWARD -> {
-				AudioProController.seekBack(AudioProController.settingSkipIntervalMs)
+				AudioProController.seekBack(AudioProController.settingSkipBackMs)
 				return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
 			}
 		}

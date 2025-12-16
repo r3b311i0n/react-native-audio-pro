@@ -33,11 +33,8 @@ export type AudioProConfigureOptions = {
 	progressIntervalMs?: number;
 	showNextPrevControls?: boolean;
 	showSkipControls?: boolean;
-	skipIntervalMs?: number;
-	/**
-	 * @deprecated use skipIntervalMs instead
-	 */
-	skipInterval?: number;
+	skipForwardMs?: number;
+	skipBackMs?: number;
 };
 
 // ==============================

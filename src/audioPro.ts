@@ -14,7 +14,8 @@ import {
 	AudioProEventType,
 	AudioProState,
 	DEFAULT_CONFIG,
-	DEFAULT_SEEK_MS,
+	DEFAULT_SEEK_BACK_MS,
+	DEFAULT_SEEK_FORWARD_MS,
 } from './values';
 
 import type {
@@ -56,7 +57,8 @@ export const AudioPro = {
 	 * @param options.debug - Enable debug logging
 	 * @param options.debugIncludesProgress - Include progress events in debug logs
 	 * @param options.progressIntervalMs - Interval in milliseconds for progress events
-	 * @param options.skipIntervalMs - Interval in milliseconds for skip forward/back actions
+	 * @param options.skipForwardMs - Interval in milliseconds for skip forward actions
+	 * @param options.skipBackMs - Interval in milliseconds for skip backward actions
 	 * @param options.showNextPrevControls - Whether to show next/previous controls in notification
 	 * @param options.showSkipControls - Whether to show skip forward/back controls in notification
 	 */
@@ -81,15 +83,6 @@ export const AudioPro = {
 				'[react-native-audio-pro]: showNextPrevControls and showSkipControls are mutually exclusive. showSkipControls will be set to false.',
 			);
 			config = { ...config, showSkipControls: false };
-		}
-		if (config.skipInterval) {
-			// Warn if deprecated skipInterval configuration was used
-			console.warn(
-				'[react-native-audio-pro]: skipInterval is deprecated and will be removed in a future release. Use `skipIntervalMs` instead.',
-			);
-			// Remove deprecated skipInterval property, and transform to value in milliseconds
-			const { skipInterval: skipIntervalDeprecated, ...fixedConfig } = config;
-			config = { ...fixedConfig, skipIntervalMs: skipIntervalDeprecated * 1000 };
 		}
 		setConfigureOptions(config);
 		setDebug(!!options.debug);
@@ -228,7 +221,7 @@ export const AudioPro = {
 	 *
 	 * @param amountMs - Amount in milliseconds to seek forward (default: 30000ms)
 	 */
-	seekForward(amountMs: number = DEFAULT_SEEK_MS) {
+	seekForward(amountMs: number = DEFAULT_SEEK_FORWARD_MS) {
 		if (!guardTrackPlaying('seekForward')) return;
 		logDebug('AudioPro: seekForward()', amountMs);
 		if (!isValidPlayerStateForOperation('seekForward()')) return;
@@ -241,7 +234,7 @@ export const AudioPro = {
 	 *
 	 * @param amountMs - Amount in milliseconds to seek backward (default: 30000ms)
 	 */
-	seekBack(amountMs: number = DEFAULT_SEEK_MS) {
+	seekBack(amountMs: number = DEFAULT_SEEK_BACK_MS) {
 		if (!guardTrackPlaying('seekBack')) return;
 		logDebug('AudioPro: seekBack()', amountMs);
 		if (!isValidPlayerStateForOperation('seekBack()')) return;

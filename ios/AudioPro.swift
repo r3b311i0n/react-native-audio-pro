@@ -71,7 +71,8 @@ class AudioPro: RCTEventEmitter {
 	private var lastEmittedState: String = ""
 	private var wasPlayingBeforeInterruption: Bool = false
 	private var pendingStartTimeMs: Double? = nil
-	private var settingSkipIntervalMs: Double = 30000.0
+	private var settingSkipForwardMs: Double = 30000.0
+	private var settingSkipBackMs: Double = 30000.0
 
 	////////////////////////////////////////////////////////////
 	// MARK: - React Native Event Emitter Overrides
@@ -298,9 +299,14 @@ class AudioPro: RCTEventEmitter {
 		settingShowSkipControls = options["showSkipControls"] as? Bool ?? false
 		pendingStartTimeMs = options["startTimeMs"] as? Double
 
-		if let skipIntervalMs = options["skipIntervalMs"] as? Double {
-			settingSkipIntervalMs = skipIntervalMs
-			log("Skip interval set to", settingSkipIntervalMs, "milliseconds")
+		if let skipForwardMs = options["skipForwardMs"] as? Double {
+			settingSkipForwardMs = skipForwardMs
+			log("Skip forward interval set to", settingSkipForwardMs, "milliseconds")
+		}
+
+		if let skipBackMs = options["skipBackMs"] as? Double {
+			settingSkipBackMs = skipBackMs
+			log("Skip back interval set to", settingSkipBackMs, "milliseconds")
 		}
 
 		if let progressIntervalMs = options["progressIntervalMs"] as? Double {
@@ -1129,13 +1135,13 @@ class AudioPro: RCTEventEmitter {
 		// Register command targets as before (disabling just hides/prevents UI, targets are safe to always register)
 		commandCenter.skipForwardCommand.addTarget { [weak self] event in
 			guard let self = self else { return .commandFailed }
-			self.seekForward(amount: self.settingSkipIntervalMs)
+			self.seekForward(amount: self.settingSkipForwardMs)
 			return .success
 		}
 
 		commandCenter.skipBackwardCommand.addTarget { [weak self] event in
 			guard let self = self else { return .commandFailed }
-			self.seekBack(amount: self.settingSkipIntervalMs)
+			self.seekBack(amount: self.settingSkipBackMs)
 			return .success
 		}
 
@@ -1209,8 +1215,8 @@ class AudioPro: RCTEventEmitter {
 			return .success
 		}
 
-		commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: settingSkipIntervalMs)]
-		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: settingSkipIntervalMs)]
+		commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: settingSkipForwardMs)]
+		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: settingSkipBackMs)]
 
 		isRemoteCommandCenterSetup = true
 	}
