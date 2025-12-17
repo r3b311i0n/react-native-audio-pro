@@ -62,6 +62,7 @@ class AudioPro: RCTEventEmitter {
 	private var settingProgressInterval: TimeInterval = 1.0
 	private var settingShowNextPrevControls = true
 	private var settingShowSkipControls = false
+	private var settingAllowLockScreenScrubbing = true
 	private var settingLoopAmbient: Bool = true
 
 	private var activeVolume: Float = 1.0
@@ -310,6 +311,7 @@ class AudioPro: RCTEventEmitter {
 		let autoPlay = options["autoPlay"] as? Bool ?? true
 		settingShowNextPrevControls = options["showNextPrevControls"] as? Bool ?? true
 		settingShowSkipControls = options["showSkipControls"] as? Bool ?? false
+		settingAllowLockScreenScrubbing = options["allowLockScreenScrubbing"] as? Bool ?? true
 		pendingStartTimeMs = options["startTimeMs"] as? Double
 
 		if let skipForwardMs = options["skipForwardMs"] as? Double {
@@ -1150,11 +1152,12 @@ class AudioPro: RCTEventEmitter {
 			commandCenter.skipBackwardCommand.isEnabled = true
 		}
 
-		// Always enable play, pause, toggle, and changePlaybackPosition commands
+		// Always enable play, pause, and toggle commands
 		commandCenter.playCommand.isEnabled = true
 		commandCenter.pauseCommand.isEnabled = true
 		commandCenter.togglePlayPauseCommand.isEnabled = true
-		commandCenter.changePlaybackPositionCommand.isEnabled = true
+		// Conditionally enable scrubbing/seeking from lock screen
+		commandCenter.changePlaybackPositionCommand.isEnabled = settingAllowLockScreenScrubbing
 
 		// Register command targets as before (disabling just hides/prevents UI, targets are safe to always register)
 		commandCenter.skipForwardCommand.addTarget { [weak self] event in

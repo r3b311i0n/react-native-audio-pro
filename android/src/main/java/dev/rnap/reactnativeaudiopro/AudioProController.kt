@@ -62,6 +62,7 @@ object AudioProController {
 	var settingShowSkipControls: Boolean = false
 	var settingSkipForwardMs: Long = 30000L
 	var settingSkipBackMs: Long = 30000L
+	var settingAllowLockScreenScrubbing: Boolean = true
 
 	var headersAudio: Map<String, String>? = null
 	var headersArtwork: Map<String, String>? = null
@@ -163,6 +164,7 @@ object AudioProController {
 		val showSkipControls: Boolean,
 		val skipForwardMs: Long,
 		val skipBackMs: Long,
+		val allowLockScreenScrubbing: Boolean,
 	)
 
 	// Extracts and applies play options from JS before playback
@@ -191,6 +193,8 @@ object AudioProController {
 			if (options.hasKey("skipForwardMs")) options.getDouble("skipForwardMs").toLong() else 30000L
 		val skipBackMs =
 			if (options.hasKey("skipBackMs")) options.getDouble("skipBackMs").toLong() else 30000L
+		val allowLockScreenScrubbing =
+			if (options.hasKey("allowLockScreenScrubbing")) options.getBoolean("allowLockScreenScrubbing") else true
 
 		// Warn if showNextPrevControls is changed after session initialization
 		if (::engineBrowserFuture.isInitialized && enginerBrowser != null && showControls != settingShowNextPrevControls) {
@@ -233,6 +237,7 @@ object AudioProController {
 		settingShowSkipControls = resolvedShowSkip
 		settingSkipForwardMs = skipForwardMs
 		settingSkipBackMs = skipBackMs
+		settingAllowLockScreenScrubbing = allowLockScreenScrubbing
 
 		return PlaybackOptions(
 			contentType,
@@ -247,6 +252,7 @@ object AudioProController {
 			resolvedShowSkip,
 			skipForwardMs,
 			skipBackMs,
+			allowLockScreenScrubbing,
 		)
 	}
 

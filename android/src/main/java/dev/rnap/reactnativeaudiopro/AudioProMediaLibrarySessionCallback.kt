@@ -3,6 +3,7 @@ package dev.rnap.reactnativeaudiopro
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaLibraryService
@@ -109,10 +110,20 @@ open class AudioProMediaLibrarySessionCallback : MediaLibraryService.MediaLibrar
 		session: MediaSession,
 		controller: MediaSession.ControllerInfo,
 	): MediaSession.ConnectionResult {
-		return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+		val builder = MediaSession.ConnectionResult.AcceptedResultBuilder(session)
 			.setAvailableSessionCommands(mediaNotificationSessionCommands)
 			.setMediaButtonPreferences(getCommandButtons())
-			.build()
+
+		// Conditionally disable lock screen scrubbing by removing seek command
+		if (!AudioProController.settingAllowLockScreenScrubbing) {
+			val playerCommands = Player.Commands.Builder()
+				.addAllCommands()
+				.remove(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+				.build()
+			builder.setAvailablePlayerCommands(playerCommands)
+		}
+
+		return builder.build()
 	}
 
 	@OptIn(UnstableApi::class) // MediaSession.isMediaNotificationController
