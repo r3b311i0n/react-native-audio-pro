@@ -61,16 +61,15 @@ open class AudioProMediaLibrarySessionCallback : MediaLibraryService.MediaLibrar
 	private fun getCommandButtons(): List<CommandButton> {
 		val buttons = mutableListOf<CommandButton>()
 
-		// Always provide 15-/30-second skip controls
-		buttons.add(skipBackwardButton)
-		buttons.add(skipForwardButton)
-
+		// Mutual exclusivity: only one set of controls can be enabled
 		if (AudioProController.settingShowNextPrevControls) {
 			AudioProController.log("Next/Prev controls are enabled")
 			buttons.add(nextButton)
 			buttons.add(prevButton)
-		} else {
-			AudioProController.log("Next/Prev controls are disabled")
+		} else if (AudioProController.settingShowSkipControls) {
+			AudioProController.log("Skip controls are enabled")
+			buttons.add(skipBackwardButton)
+			buttons.add(skipForwardButton)
 		}
 
 		return buttons
