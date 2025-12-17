@@ -163,13 +163,19 @@ class AudioPro: RCTEventEmitter {
 
 					// Resume playback
 					player?.play()
+
+					// Restore playback speed if not default
+					if currentPlaybackSpeed != 1.0 {
+						player?.rate = currentPlaybackSpeed
+					}
+
 					startProgressTimer()
 
 					// Emit PLAYING state
 					sendPlayingStateEvent()
 
 					// Update now playing info
-					updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: 1.0)
+					updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: currentPlaybackSpeed)
 				} catch {
 					log("Failed to reactivate audio session: \(error.localizedDescription)")
 					emitPlaybackError("Failed to resume after interruption: \(error.localizedDescription)")
@@ -555,8 +561,13 @@ class AudioPro: RCTEventEmitter {
 
 		player?.play()
 
+		// Restore playback speed if not default
+		if currentPlaybackSpeed != 1.0 {
+			player?.rate = currentPlaybackSpeed
+		}
+
 		// Ensure lock screen controls are properly updated
-		updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: 1.0)
+		updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: currentPlaybackSpeed)
 
 		// Note: We don't need to call sendPlayingStateEvent() here because
 		// the rate change will trigger observeValue which now calls sendPlayingStateEvent()
