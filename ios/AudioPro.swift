@@ -73,6 +73,7 @@ class AudioPro: RCTEventEmitter {
 	private var pendingStartTimeMs: Double? = nil
 	private var settingSkipForwardMs: Double = 30000.0
 	private var settingSkipBackMs: Double = 30000.0
+	private var audioSessionMode: AVAudioSession.Mode = .default
 
 	////////////////////////////////////////////////////////////
 	// MARK: - React Native Event Emitter Overrides
@@ -157,9 +158,15 @@ class AudioPro: RCTEventEmitter {
 			if wasPlayingBeforeInterruption && options.contains(.shouldResume) {
 				log("Interruption ended with resume option, resuming playback")
 
-				// Try to reactivate the audio session
+				// Reconfigure and reactivate the audio session if needed
+				// The interrupting app may have changed the category/mode
 				do {
-					try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+					let session = AVAudioSession.sharedInstance()
+					if session.category != .playback || session.mode != audioSessionMode {
+						log("Audio session changed after interruption, reconfiguring to .playback/\(audioSessionMode)")
+						try session.setCategory(.playback, mode: audioSessionMode)
+					}
+					try session.setActive(true, options: .notifyOthersOnDeactivation)
 
 					// Resume playback
 					player?.play()
@@ -347,8 +354,8 @@ class AudioPro: RCTEventEmitter {
 
 		do {
 			let contentType = options["contentType"] as? String ?? "MUSIC"
-			let mode: AVAudioSession.Mode = (contentType == "SPEECH") ? .spokenAudio : .default
-			try AVAudioSession.sharedInstance().setCategory(.playback, mode: mode)
+			audioSessionMode = (contentType == "SPEECH") ? .spokenAudio : .default
+			try AVAudioSession.sharedInstance().setCategory(.playback, mode: audioSessionMode)
 			try AVAudioSession.sharedInstance().setActive(true)
 
 			// Set up audio session interruption observer
@@ -549,13 +556,19 @@ class AudioPro: RCTEventEmitter {
 	func resume() {
 		shouldBePlaying = true
 
-		// Try to reactivate the audio session if needed
+		// Reconfigure and reactivate the audio session if needed
+		// This is necessary because other apps (e.g., speech recognition) may have changed
+		// the audio session category/mode, which can cause audio to route to the earpiece
 		do {
-			if !AVAudioSession.sharedInstance().isOtherAudioPlaying {
-				try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+			let session = AVAudioSession.sharedInstance()
+			// Only reconfigure if the category or mode has changed from our expected settings
+			if session.category != .playback || session.mode != audioSessionMode {
+				log("Audio session changed (category: \(session.category), mode: \(session.mode)), reconfiguring to .playback/\(audioSessionMode)")
+				try session.setCategory(.playback, mode: audioSessionMode)
 			}
+			try session.setActive(true, options: .notifyOthersOnDeactivation)
 		} catch {
-			log("Failed to reactivate audio session: \(error.localizedDescription)")
+			log("Failed to reconfigure audio session: \(error.localizedDescription)")
 			// Continue anyway, as the play command might still work
 		}
 
