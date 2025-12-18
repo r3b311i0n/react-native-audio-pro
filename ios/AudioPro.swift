@@ -389,6 +389,9 @@ class AudioPro: RCTEventEmitter {
 			if !self.isRemoteCommandCenterSetup {
 				UIApplication.shared.beginReceivingRemoteControlEvents()
 				self.setupRemoteTransportControls()
+			} else {
+				// Update scrubbing setting for subsequent tracks even if remote controls are already set up
+				self.updateLockScreenScrubbingSetting()
 			}
 		}
 
@@ -1246,6 +1249,14 @@ class AudioPro: RCTEventEmitter {
 		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: settingSkipBackMs)]
 
 		isRemoteCommandCenterSetup = true
+	}
+
+	/// Updates only the lock screen scrubbing setting without re-registering all remote control handlers.
+	/// This is called when subsequent tracks are played with a different allowLockScreenScrubbing value.
+	private func updateLockScreenScrubbingSetting() {
+		let commandCenter = MPRemoteCommandCenter.shared()
+		commandCenter.changePlaybackPositionCommand.isEnabled = settingAllowLockScreenScrubbing
+		log("Updated lock screen scrubbing setting to", settingAllowLockScreenScrubbing)
 	}
 
 	private func removeRemoteTransportControls() {

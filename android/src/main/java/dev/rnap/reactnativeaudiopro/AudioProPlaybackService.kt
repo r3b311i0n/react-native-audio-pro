@@ -35,6 +35,42 @@ open class AudioProPlaybackService : MediaLibraryService() {
 	companion object {
 		private const val NOTIFICATION_ID = 789
 		private const val CHANNEL_ID = "audio_pro_notification_channel_id"
+
+		// Static reference to the active service instance for dynamic command updates
+		private var activeInstance: AudioProPlaybackService? = null
+
+		/**
+		 * Updates the lock screen scrubbing setting for all connected controllers.
+		 * This should be called when a new track is played with a different allowLockScreenScrubbing value.
+		 */
+		@OptIn(UnstableApi::class)
+		fun updateLockScreenScrubbingSetting(allowScrubbing: Boolean) {
+			// Media3 operations must run on main thread
+			android.os.Handler(android.os.Looper.getMainLooper()).post {
+				activeInstance?.let { service ->
+					if (service::mediaLibrarySession.isInitialized) {
+						val playerCommands = if (allowScrubbing) {
+							Player.Commands.Builder().addAllCommands().build()
+						} else {
+							Player.Commands.Builder()
+								.addAllCommands()
+								.remove(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+								.build()
+						}
+
+						// Update commands for all connected controllers
+						service.mediaLibrarySession.connectedControllers.forEach { controller ->
+							service.mediaLibrarySession.setAvailableCommands(
+								controller,
+								MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS,
+								playerCommands
+							)
+						}
+						android.util.Log.d("AudioProPlaybackService", "Updated lock screen scrubbing setting to $allowScrubbing")
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -77,6 +113,7 @@ open class AudioProPlaybackService : MediaLibraryService() {
 	@OptIn(UnstableApi::class) // MediaSessionService.setListener
 	override fun onCreate() {
 		super.onCreate()
+		activeInstance = this
 		setListener(MediaSessionServiceListener())
 		initializeSessionAndPlayer()
 	}
@@ -134,6 +171,9 @@ open class AudioProPlaybackService : MediaLibraryService() {
 	@OptIn(UnstableApi::class)
 	override fun onDestroy() {
 		android.util.Log.d("AudioProPlaybackService", "Service being destroyed")
+
+		// Clear static instance reference
+		activeInstance = null
 
 		// Make sure to release all resources
 		try {
