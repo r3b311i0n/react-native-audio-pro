@@ -286,6 +286,9 @@ object AudioProController {
 		ensurePreparedForNewPlayback()
 		activeTrack = track
 
+		// Update lock screen scrubbing setting for subsequent tracks
+		AudioProPlaybackService.updateLockScreenScrubbingSetting(opts.allowLockScreenScrubbing)
+
 		// If startTimeMs is provided, set a pending seek position
 		if (opts.startTimeMs != null) {
 			flowPendingSeekPosition = opts.startTimeMs
