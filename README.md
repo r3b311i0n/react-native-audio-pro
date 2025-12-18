@@ -263,6 +263,7 @@ AudioPro.configure({
   If not set, defaults to 30000 (30 seconds).
 - `skipBackMs` — The interval (in milliseconds) used for skip backward controls.
   If not set, defaults to 30000 (30 seconds).
+- `allowLockScreenScrubbing` — When set to `false`, disables scrubbing/seek from lock screen and notification controls while keeping play/pause and skip buttons available. Defaults to `true`.
 
 > ⚠️ **Only one set of controls can be active at a time.**
 > If both `showNextPrevControls` and `showSkipControls` are set to `true`, only Next/Prev controls will be shown (Skip controls will be ignored).
@@ -315,6 +316,7 @@ type AudioProPlayOptions = {
  autoPlay?: boolean; // Whether to start playback immediately (default: true)
  headers?: AudioProHeaders; // Custom HTTP headers for audio and artwork requests
  startTimeMs?: number; // Optional position in milliseconds to start playback from, even if autoPlay is false.
+ allowLockScreenScrubbing?: boolean; // Allow scrubbing/seek from lock screen and notifications (default: true)
 };
 ```
 

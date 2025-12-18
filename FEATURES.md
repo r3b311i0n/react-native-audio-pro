@@ -102,6 +102,8 @@ Below is a comprehensive list of all features and functionality exposed by React
    - Android Media3 session & notification controls
    - iOS MPNowPlayingInfo & MPRemoteCommandCenter
    - Remote control events: `REMOTE_NEXT`, `REMOTE_PREV`, seek commands
+   - Configurable skip-forward/back intervals via `skipForwardMs` / `skipBackMs`
+   - Optional lock-screen scrubbing toggle via `allowLockScreenScrubbing`
 
 9. **Artwork Support**
    - Display artwork via URL (JPEG, PNG, etc.) on lock screen and controls

@@ -15,6 +15,7 @@ For ambient/secondary playback, see `spec-ambient.md`.
 - ✅ Full playback control: `play`, `pause`, `resume`, `seek`, `stop`, `clear`
 - ✅ Audio routing & background playback
 - ✅ Lock screen + media session integration (Android/iOS)
+- ✅ Configurable skip forward/back intervals for lock screen controls, with independent forward/back values and optional disabling of lock-screen scrubbing
 - ✅ Native volume control (0.0–1.0 range, does not affect system volume)
 - ✅ Native playback speed control (0.25x to 2.0x)
 - ✅ Reactive state & position updates via hook (`useAudioPro`) and event listener
