@@ -77,12 +77,14 @@ If the player is **buffering mid-playback** (e.g. network stalls):
 |---------|----------------|----------------------------|--------------------|-----------------------------|
 | ▶️ **Play** | Native (automatic) | ❌ | ✅ `STATE_CHANGED: PLAYING` | Resumes playback |
 | ⏸ **Pause** | Native (automatic) | ❌ | ✅ `STATE_CHANGED: PAUSED` | Pauses playback |
-| 📍 **Seek Bar** | Native (automatic) | ❌ | ✅ `STATE_CHANGED: PLAYING/PAUSED` in next `PROGRESS` | Seek updates position; no `SEEK_COMPLETE` emitted |
+| 📍 **Seek Bar** | Native (automatic) | ❌ | ✅ `STATE_CHANGED: PLAYING/PAUSED` in next `PROGRESS` | Seek updates position when lock-screen scrubbing is enabled; no `SEEK_COMPLETE` emitted |
 | ⏭ **Next Track** | JS (developer's app) | ✅ `REMOTE_NEXT` | ❌ | App must call `play(nextTrack)` |
 | ⏮ **Previous Track** | JS (developer's app) | ✅ `REMOTE_PREV` | ❌ | App must call `play(prevTrack)` |
 
 > ⚠️ Native emits **all state changes** from lock screen interactions.
 > TypeScript **does not emit state** — it only receives `STATE_CHANGED` or `REMOTE_*` where applicable.
+
+> 🔧 When `allowLockScreenScrubbing` is set to `false` in `AudioProPlayOptions`, native removes the seek bar / scrubbing command from lock screen and notification controls, so only play/pause and skip/next/prev remain available.
 
 ---
 

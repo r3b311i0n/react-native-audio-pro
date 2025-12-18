@@ -62,6 +62,7 @@ class AudioPro: RCTEventEmitter {
 	private var settingProgressInterval: TimeInterval = 1.0
 	private var settingShowNextPrevControls = true
 	private var settingShowSkipControls = false
+	private var settingAllowLockScreenScrubbing = true
 	private var settingLoopAmbient: Bool = true
 
 	private var activeVolume: Float = 1.0
@@ -71,7 +72,9 @@ class AudioPro: RCTEventEmitter {
 	private var lastEmittedState: String = ""
 	private var wasPlayingBeforeInterruption: Bool = false
 	private var pendingStartTimeMs: Double? = nil
-	private var settingSkipIntervalMs: Double = 30000.0
+	private var settingSkipForwardMs: Double = 30000.0
+	private var settingSkipBackMs: Double = 30000.0
+	private var audioSessionMode: AVAudioSession.Mode = .default
 
 	////////////////////////////////////////////////////////////
 	// MARK: - React Native Event Emitter Overrides
@@ -156,19 +159,31 @@ class AudioPro: RCTEventEmitter {
 			if wasPlayingBeforeInterruption && options.contains(.shouldResume) {
 				log("Interruption ended with resume option, resuming playback")
 
-				// Try to reactivate the audio session
+				// Reconfigure and reactivate the audio session if needed
+				// The interrupting app may have changed the category/mode
 				do {
-					try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+					let session = AVAudioSession.sharedInstance()
+					if session.category != .playback || session.mode != audioSessionMode {
+						log("Audio session changed after interruption, reconfiguring to .playback/\(audioSessionMode)")
+						try session.setCategory(.playback, mode: audioSessionMode)
+					}
+					try session.setActive(true, options: .notifyOthersOnDeactivation)
 
 					// Resume playback
 					player?.play()
+
+					// Restore playback speed if not default
+					if currentPlaybackSpeed != 1.0 {
+						player?.rate = currentPlaybackSpeed
+					}
+
 					startProgressTimer()
 
 					// Emit PLAYING state
 					sendPlayingStateEvent()
 
 					// Update now playing info
-					updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: 1.0)
+					updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: currentPlaybackSpeed)
 				} catch {
 					log("Failed to reactivate audio session: \(error.localizedDescription)")
 					emitPlaybackError("Failed to resume after interruption: \(error.localizedDescription)")
@@ -296,11 +311,17 @@ class AudioPro: RCTEventEmitter {
 		let autoPlay = options["autoPlay"] as? Bool ?? true
 		settingShowNextPrevControls = options["showNextPrevControls"] as? Bool ?? true
 		settingShowSkipControls = options["showSkipControls"] as? Bool ?? false
+		settingAllowLockScreenScrubbing = options["allowLockScreenScrubbing"] as? Bool ?? true
 		pendingStartTimeMs = options["startTimeMs"] as? Double
 
-		if let skipIntervalMs = options["skipIntervalMs"] as? Double {
-			settingSkipIntervalMs = skipIntervalMs
-			log("Skip interval set to", settingSkipIntervalMs, "milliseconds")
+		if let skipForwardMs = options["skipForwardMs"] as? Double {
+			settingSkipForwardMs = skipForwardMs
+			log("Skip forward interval set to", settingSkipForwardMs, "milliseconds")
+		}
+
+		if let skipBackMs = options["skipBackMs"] as? Double {
+			settingSkipBackMs = skipBackMs
+			log("Skip back interval set to", settingSkipBackMs, "milliseconds")
 		}
 
 		if let progressIntervalMs = options["progressIntervalMs"] as? Double {
@@ -335,8 +356,8 @@ class AudioPro: RCTEventEmitter {
 
 		do {
 			let contentType = options["contentType"] as? String ?? "MUSIC"
-			let mode: AVAudioSession.Mode = (contentType == "SPEECH") ? .spokenAudio : .default
-			try AVAudioSession.sharedInstance().setCategory(.playback, mode: mode)
+			audioSessionMode = (contentType == "SPEECH") ? .spokenAudio : .default
+			try AVAudioSession.sharedInstance().setCategory(.playback, mode: audioSessionMode)
 			try AVAudioSession.sharedInstance().setActive(true)
 
 			// Set up audio session interruption observer
@@ -537,20 +558,31 @@ class AudioPro: RCTEventEmitter {
 	func resume() {
 		shouldBePlaying = true
 
-		// Try to reactivate the audio session if needed
+		// Reconfigure and reactivate the audio session if needed
+		// This is necessary because other apps (e.g., speech recognition) may have changed
+		// the audio session category/mode, which can cause audio to route to the earpiece
 		do {
-			if !AVAudioSession.sharedInstance().isOtherAudioPlaying {
-				try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+			let session = AVAudioSession.sharedInstance()
+			// Only reconfigure if the category or mode has changed from our expected settings
+			if session.category != .playback || session.mode != audioSessionMode {
+				log("Audio session changed (category: \(session.category), mode: \(session.mode)), reconfiguring to .playback/\(audioSessionMode)")
+				try session.setCategory(.playback, mode: audioSessionMode)
 			}
+			try session.setActive(true, options: .notifyOthersOnDeactivation)
 		} catch {
-			log("Failed to reactivate audio session: \(error.localizedDescription)")
+			log("Failed to reconfigure audio session: \(error.localizedDescription)")
 			// Continue anyway, as the play command might still work
 		}
 
 		player?.play()
 
+		// Restore playback speed if not default
+		if currentPlaybackSpeed != 1.0 {
+			player?.rate = currentPlaybackSpeed
+		}
+
 		// Ensure lock screen controls are properly updated
-		updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: 1.0)
+		updateNowPlayingInfo(time: player?.currentTime().seconds ?? 0, rate: currentPlaybackSpeed)
 
 		// Note: We don't need to call sendPlayingStateEvent() here because
 		// the rate change will trigger observeValue which now calls sendPlayingStateEvent()
@@ -1120,22 +1152,23 @@ class AudioPro: RCTEventEmitter {
 			commandCenter.skipBackwardCommand.isEnabled = true
 		}
 
-		// Always enable play, pause, toggle, and changePlaybackPosition commands
+		// Always enable play, pause, and toggle commands
 		commandCenter.playCommand.isEnabled = true
 		commandCenter.pauseCommand.isEnabled = true
 		commandCenter.togglePlayPauseCommand.isEnabled = true
-		commandCenter.changePlaybackPositionCommand.isEnabled = true
+		// Conditionally enable scrubbing/seeking from lock screen
+		commandCenter.changePlaybackPositionCommand.isEnabled = settingAllowLockScreenScrubbing
 
 		// Register command targets as before (disabling just hides/prevents UI, targets are safe to always register)
 		commandCenter.skipForwardCommand.addTarget { [weak self] event in
 			guard let self = self else { return .commandFailed }
-			self.seekForward(amount: self.settingSkipIntervalMs)
+			self.seekForward(amount: self.settingSkipForwardMs)
 			return .success
 		}
 
 		commandCenter.skipBackwardCommand.addTarget { [weak self] event in
 			guard let self = self else { return .commandFailed }
-			self.seekBack(amount: self.settingSkipIntervalMs)
+			self.seekBack(amount: self.settingSkipBackMs)
 			return .success
 		}
 
@@ -1209,8 +1242,8 @@ class AudioPro: RCTEventEmitter {
 			return .success
 		}
 
-		commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: settingSkipIntervalMs)]
-		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: settingSkipIntervalMs)]
+		commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: settingSkipForwardMs)]
+		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: settingSkipBackMs)]
 
 		isRemoteCommandCenterSetup = true
 	}

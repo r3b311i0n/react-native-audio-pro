@@ -195,22 +195,6 @@ describe('AudioPro configuration', () => {
 
 		warnSpy.mockRestore();
 	});
-
-	it('converts deprecated skipInterval seconds to milliseconds', () => {
-		const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-		AudioPro.configure({ skipInterval: 12 });
-
-		const calls = (internalStore.getState().setConfigureOptions as jest.Mock).mock.calls;
-		const config = calls[calls.length - 1][0];
-		expect(config.skipInterval).toBeUndefined();
-		expect(config.skipIntervalMs).toBe(12000);
-		expect(warnSpy).toHaveBeenCalledWith(
-			'[react-native-audio-pro]: skipInterval is deprecated and will be removed in a future release. Use `skipIntervalMs` instead.',
-		);
-
-		warnSpy.mockRestore();
-	});
 });
 
 describe('AudioPro error cases', () => {

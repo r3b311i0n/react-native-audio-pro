@@ -81,7 +81,5 @@ function createEmitterMock(modulePath) {
 }
 
 createInternalStoreMock('./src/internalStore');
-createInternalStoreMock('./.conductor/hong-kong/src/internalStore');
 
 createEmitterMock('./src/emitter');
-createEmitterMock('./.conductor/hong-kong/src/emitter');

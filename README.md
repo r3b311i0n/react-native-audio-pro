@@ -102,36 +102,46 @@ buildscript {
 > **Note:** React Native Audio Pro requires a development build when using Expo, as it contains native code that cannot run in Expo Go.
 
 1. Install the required Expo package:
+
     ```bash
     npx expo install expo-build-properties
     ```
+
 2. **For iOS, enable Background Modes in your `app.json`:**
+
     ```json
     {
-    	"expo": {
-    		"ios": {
-    			"infoPlist": {
-    				"UIBackgroundModes": ["audio"]
-    			}
-    		}
-    	}
+     "expo": {
+       "ios": {
+         "infoPlist": {
+           "UIBackgroundModes": ["audio"]
+         }
+       }
+      }
     }
     ```
+
 3. **For Android, update your plugins array in `app.json`:**
+
     ```json
-    plugins: [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "minSdkVersion": 26,
-            "compileSdkVersion": 35,
-            "targetSdkVersion": 35,
-          },
-        },
-      ],
-    ]
+    {
+      "expo": {
+        "plugins": [
+          [
+            "expo-build-properties",
+            {
+              "android": {
+                "minSdkVersion": 26,
+                "compileSdkVersion": 35,
+                "targetSdkVersion": 35
+              }
+            }
+          ]
+        ]
+      }
+    }
     ```
+
 4. The last step is to [create a development build](https://docs.expo.dev/develop/development-builds/create-a-build/).
 
 ## 📚 API Overview
@@ -166,13 +176,13 @@ React Native Audio Pro supports various audio file formats including MP3, AAC, a
 
 The `useAudioPro` hook provides real-time access to the audio player state within your React components.
 
-```typescript jsx
+```tsx
 const { state, position, duration, playingTrack, playbackSpeed, volume, error } = useAudioPro();
 ```
 
 To subscribe to only the specific piece of state your component needs (and avoid unnecessary re-renders), you can pass a selector function:
 
-```typescript jsx
+```tsx
 // Only re-renders when the playing track changes
 const playingTrack = useAudioPro((s) => s.playingTrack);
 ```
@@ -236,10 +246,11 @@ Both iOS and Android support lock screen and notification controls for play/paus
 
 ```typescript
 AudioPro.configure({
-	contentType: AudioProContentType.MUSIC,
-	showNextPrevControls: true, // Hide next/previous buttons
-	showSkipControls: false, // Show skip/seek forward/back buttons (default: true)
-	skipIntervalMs: 30000, // Number of milliseconds for skip forward/back controls (default: 30000)
+ contentType: AudioProContentType.MUSIC,
+ showNextPrevControls: true, // Hide next/previous buttons
+ showSkipControls: false, // Show skip/seek forward/back buttons (default: true)
+ skipForwardMs: 30000, // Number of milliseconds for skip forward controls (default: 30000)
+ skipBackMs: 30000, // Number of milliseconds for skip back controls (default: 30000)
 });
 ```
 
@@ -248,8 +259,11 @@ AudioPro.configure({
   If your app only plays single tracks, set to `false`.
 - `showSkipControls` — Show skip/seek forward/backward buttons (default: `false`).
   If enabled, lock screen and notification controls will include skip forward/backward (seek) buttons.
-- `skipIntervalMs` — The interval (in milliseconds) used for skip forward/back controls.
+- `skipForwardMs` — The interval (in milliseconds) used for skip forward controls.
   If not set, defaults to 30000 (30 seconds).
+- `skipBackMs` — The interval (in milliseconds) used for skip backward controls.
+  If not set, defaults to 30000 (30 seconds).
+- `allowLockScreenScrubbing` — When set to `false`, disables scrubbing/seek from lock screen and notification controls while keeping play/pause and skip buttons available. Defaults to `true`.
 
 > ⚠️ **Only one set of controls can be active at a time.**
 > If both `showNextPrevControls` and `showSkipControls` are set to `true`, only Next/Prev controls will be shown (Skip controls will be ignored).
@@ -258,10 +272,11 @@ AudioPro.configure({
 
 ```typescript
 AudioPro.configure({
-	contentType: AudioProContentType.SPEECH,
-	showNextPrevControls: false,
-	showSkipControls: true, // Only show skip/seek buttons
-	skipIntervalMs: 15000, // 15 second skip
+ contentType: AudioProContentType.SPEECH,
+ showNextPrevControls: false,
+ showSkipControls: true, // Only show skip/seek buttons
+ skipForwardMs: 45000, // 45 second forward skip
+ skipBackMs: 15000, // 15 second back skip
 });
 ```
 
@@ -278,28 +293,30 @@ For a full breakdown of ambient audio helper methods, explore the [Ambient Audio
 
 ```typescript
 type AudioProTrack = {
-	id: string;
-	url: string; // the media url (mp3, m4a) - https://, or file://
-	title: string;
-	artwork: string; // the image url (jpg, png) - https://, or file://
-	album?: string;
-	artist?: string;
+ id: string;
+ url: string; // the media url (mp3, m4a) - https://, or file://
+ title: string;
+ artwork: string; // the image url (jpg, png) - https://, or file://
+ album?: string;
+ artist?: string;
 };
 
 type AudioProSetupOptions = {
-	contentType?: AudioProContentType; // MUSIC or SPEECH
-	debug?: boolean; // Verbose logging
-	debugIncludesProgress?: boolean; // Include PROGRESS events in debug logs (default: false)
-	progressIntervalMs?: number; // Frequency (in ms) for PROGRESS events (default: 1000ms)
-	showNextPrevControls?: boolean; // Show next/previous buttons (default: true)
-	showSkipControls?: boolean; // Show skip/seek forward/back buttons (default: true)
-	skipIntervalMs?: number; // Interval in milliseconds for skip forward/back controls (default: 30000)
+ contentType?: AudioProContentType; // MUSIC or SPEECH
+ debug?: boolean; // Verbose logging
+ debugIncludesProgress?: boolean; // Include PROGRESS events in debug logs (default: false)
+ progressIntervalMs?: number; // Frequency (in ms) for PROGRESS events (default: 1000ms)
+ showNextPrevControls?: boolean; // Show next/previous buttons (default: true)
+ showSkipControls?: boolean; // Show skip/seek forward/back buttons (default: true)
+ skipForwardMs?: number; // Interval in milliseconds for skip forward controls (default: 30000)
+ skipBackMs?: number; // Interval in milliseconds for skip back controls (default: 30000)
 };
 
 type AudioProPlayOptions = {
-	autoPlay?: boolean; // Whether to start playback immediately (default: true)
-	headers?: AudioProHeaders; // Custom HTTP headers for audio and artwork requests
-	startTimeMs?: number; // Optional position in milliseconds to start playback from, even if autoPlay is false.
+ autoPlay?: boolean; // Whether to start playback immediately (default: true)
+ headers?: AudioProHeaders; // Custom HTTP headers for audio and artwork requests
+ startTimeMs?: number; // Optional position in milliseconds to start playback from, even if autoPlay is false.
+ allowLockScreenScrubbing?: boolean; // Allow scrubbing/seek from lock screen and notifications (default: true)
 };
 ```
 
@@ -311,39 +328,39 @@ type AudioProPlayOptions = {
 ```typescript
 // Unified event structure
 interface AudioProEvent {
-	type: AudioProEventType;
-	track: AudioProTrack | null; // Required for all events except REMOTE_NEXT and REMOTE_PREV
-	payload?: {
-		state?: AudioProState;
-		position?: number;
-		duration?: number;
-		error?: string;
-		errorCode?: number;
-		speed?: number;
-	};
+ type: AudioProEventType;
+ track: AudioProTrack | null; // Required for all events except REMOTE_NEXT and REMOTE_PREV
+ payload?: {
+  state?: AudioProState;
+  position?: number;
+  duration?: number;
+  error?: string;
+  errorCode?: number;
+  speed?: number;
+ };
 }
 
 // Note: Command events (REMOTE_NEXT, REMOTE_PREV) don't update state and don't require track information.
 
 // Event payload examples
 interface AudioProStateChangedPayload {
-	state: AudioProState;
-	position: number;
-	duration: number;
+ state: AudioProState;
+ position: number;
+ duration: number;
 }
 
 interface AudioProTrackEndedPayload {
-	position: number;
-	duration: number;
+ position: number;
+ duration: number;
 }
 
 interface AudioProPlaybackErrorPayload {
-	error: string;
-	errorCode?: number;
+ error: string;
+ errorCode?: number;
 }
 
 interface AudioProPlaybackSpeedChangedPayload {
-	speed: number;
+ speed: number;
 }
 ```
 
@@ -359,11 +376,13 @@ Use `AudioProContentType.SPEECH` for podcasts or audiobooks, `AudioProContentTyp
 </details>
 
 <details>
+
 <summary><b>About debug options</b></summary>
 
 - `debug`: When set to `true`, enables verbose logging of all audio events. Useful for development and troubleshooting.
 - `debugIncludesProgress`: When set to `true`, includes PROGRESS events in debug logs. PROGRESS events occur every second during playback and can flood the logs, making it harder to see other important events. Defaults to `false`.
-    </details>
+
+</details>
 
 <details>
 <summary><b>About progressIntervalMs</b></summary>
@@ -385,24 +404,24 @@ import { AudioPro, AudioProEventType } from 'react-native-audio-pro';
 
 // Set up listeners outside React components (see warning section below)
 const subscription = AudioPro.addEventListener((event) => {
-	switch (event.type) {
-		case AudioProEventType.REMOTE_NEXT:
-			// Handle next track button press
-			console.log('User pressed Next button');
-			// Load and play next track
-			break;
+ switch (event.type) {
+  case AudioProEventType.REMOTE_NEXT:
+   // Handle next track button press
+   console.log('User pressed Next button');
+   // Load and play next track
+   break;
 
-		case AudioProEventType.REMOTE_PREV:
-			// Handle previous track button press
-			console.log('User pressed Previous button');
-			// Load and play previous track
-			break;
+  case AudioProEventType.REMOTE_PREV:
+   // Handle previous track button press
+   console.log('User pressed Previous button');
+   // Load and play previous track
+   break;
 
-		case AudioProEventType.STATE_CHANGED:
-			// Handle state changes
-			console.log('State changed to:', event.payload?.state);
-			break;
-	}
+  case AudioProEventType.STATE_CHANGED:
+   // Handle state changes
+   console.log('State changed to:', event.payload?.state);
+   break;
+ }
 });
 
 // Later, when you want to remove the listener
@@ -413,7 +432,7 @@ subscription.remove();
 
 The `useAudioPro` hook gives you real-time access to the playback state, current position, total duration, and the currently playing track via the `playingTrack` property.
 
-```typescript jsx
+```tsx
 import { useAudioPro } from 'react-native-audio-pro';
 
 const AudioStatus = () => {
@@ -453,16 +472,16 @@ import { AudioPro, AudioProContentType } from 'react-native-audio-pro';
 
 // Optional: Set playback config
 AudioPro.configure({
-	contentType: AudioProContentType.MUSIC,
-	debug: __DEV__,
+ contentType: AudioProContentType.MUSIC,
+ debug: __DEV__,
 });
 
 const track = {
-	id: 'track-001',
-	url: 'https://example.com/audio.mp3',
-	title: 'My Track',
-	artwork: 'https://example.com/artwork.jpg',
-	artist: 'Artist Name',
+ id: 'track-001',
+ url: 'https://example.com/audio.mp3',
+ title: 'My Track',
+ artwork: 'https://example.com/artwork.jpg',
+ artist: 'Artist Name',
 };
 
 // Load and play the track
@@ -492,7 +511,7 @@ const speed = AudioPro.getPlaybackSpeed();
 const volume = AudioPro.getVolume();
 const error = AudioPro.getError();
 console.log(
-	`Currently playing: ${playingTrack?.title} (${position}/${duration}ms) - State: ${state} - Speed: ${speed}x - Volume: ${Math.round(volume * 100)}%`,
+ `Currently playing: ${playingTrack?.title} (${position}/${duration}ms) - State: ${state} - Speed: ${speed}x - Volume: ${Math.round(volume * 100)}%`,
 );
 ```
 
@@ -528,37 +547,37 @@ setupAudio();
 import { AudioPro, AudioProEventType, AudioProContentType } from 'react-native-audio-pro';
 
 export function setupAudio() {
-	// Configure audio settings
-	AudioPro.configure({
-		contentType: AudioProContentType.MUSIC,
-		debug: __DEV__,
-		debugIncludesProgress: false,
-		progressIntervalMs: 1000,
-		showNextPrevControls: true, // Show next/previous buttons on lock screen (default)
-	});
+ // Configure audio settings
+ AudioPro.configure({
+  contentType: AudioProContentType.MUSIC,
+  debug: __DEV__,
+  debugIncludesProgress: false,
+  progressIntervalMs: 1000,
+  showNextPrevControls: true, // Show next/previous buttons on lock screen (default)
+ });
 
-	// Set up event listeners that persist for the app's lifetime
-	AudioPro.addEventListener((event) => {
-		switch (event.type) {
-			case AudioProEventType.TRACK_ENDED:
-				// Auto-play next track when current track ends
-				const nextTrack = determineNextTrack();
-				if (nextTrack) {
-					AudioPro.play(nextTrack);
-				}
-				break;
+ // Set up event listeners that persist for the app's lifetime
+ AudioPro.addEventListener((event) => {
+  switch (event.type) {
+   case AudioProEventType.TRACK_ENDED:
+    // Auto-play next track when current track ends
+    const nextTrack = determineNextTrack();
+    if (nextTrack) {
+     AudioPro.play(nextTrack);
+    }
+    break;
 
-			case AudioProEventType.REMOTE_NEXT:
-				// Handle next button press from lock screen/notification
-				const nextTrackFromRemote = determineNextTrack();
-				AudioPro.play(nextTrackFromRemote);
-				break;
-		}
-	});
+   case AudioProEventType.REMOTE_NEXT:
+    // Handle next button press from lock screen/notification
+    const nextTrackFromRemote = determineNextTrack();
+    AudioPro.play(nextTrackFromRemote);
+    break;
+  }
+ });
 }
 
 function determineNextTrack() {
-	/* Your logic here */
+ /* Your logic here */
 }
 ```
 
@@ -573,7 +592,7 @@ It demonstrates how to use `react-native-audio-pro` in a real React Native app, 
 - Progress slider
 - Event listeners set up outside the React lifecycle
 
-### To run the example:
+### To run the example
 
 - Clone this repo and run the below commands
 
