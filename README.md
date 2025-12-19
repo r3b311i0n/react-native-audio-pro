@@ -171,6 +171,8 @@ React Native Audio Pro supports various audio file formats including MP3, AAC, a
 | **setVolume(volume: number)** | Sets the playback volume from `0.0` to `1.0`. Does not affect the system volume. | `void` |
 | **getVolume()** | Returns the current relative volume (`0.0` to `1.0`). | `number` |
 | **getError()** | Returns the last error that occurred, or `null` if no error has occurred. | `AudioProPlaybackErrorPayload \| null` |
+| **setAllowLockScreenScrubbing(allow: boolean)** | Enables or disables lock screen scrubbing. Can be called while a track is playing for immediate effect. | `void` |
+| **getAllowLockScreenScrubbing()** | Returns whether lock screen scrubbing is currently allowed. | `boolean` |
 
 ### ⚡️ React Hook
 
@@ -263,7 +265,7 @@ AudioPro.configure({
   If not set, defaults to 30000 (30 seconds).
 - `skipBackMs` — The interval (in milliseconds) used for skip backward controls.
   If not set, defaults to 30000 (30 seconds).
-- `allowLockScreenScrubbing` — When set to `false`, disables scrubbing/seek from lock screen and notification controls while keeping play/pause and skip buttons available. Defaults to `true`.
+- `allowLockScreenScrubbing` — When set to `false`, disables scrubbing/seek from lock screen and notification controls while keeping play/pause and skip buttons available. Defaults to `true`. Can also be changed dynamically using `setAllowLockScreenScrubbing()`.
 
 > ⚠️ **Only one set of controls can be active at a time.**
 > If both `showNextPrevControls` and `showSkipControls` are set to `true`, only Next/Prev controls will be shown (Skip controls will be ignored).
@@ -283,6 +285,21 @@ AudioPro.configure({
 **iOS note:**
 Due to platform constraints, iOS only supports showing either Next/Prev or Skip controls, not both.
 Android supports both options but will prioritize Next/Prev if both are enabled.
+
+**Dynamic scrubbing control:**
+
+You can enable or disable lock screen scrubbing while a track is playing:
+
+```typescript
+// Disable scrubbing during an ad or protected section
+AudioPro.setAllowLockScreenScrubbing(false);
+
+// Re-enable scrubbing
+AudioPro.setAllowLockScreenScrubbing(true);
+
+// Check current state
+const isScrubbingAllowed = AudioPro.getAllowLockScreenScrubbing();
+```
 
 For a full breakdown of ambient audio helper methods, explore the [Ambient Audio Guide](docs/ambient-audio.md#ambient-audio-methods-stateless-fire-and-forget).
 

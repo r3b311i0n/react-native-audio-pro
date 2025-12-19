@@ -93,6 +93,11 @@ class AudioProModule(private val reactContext: ReactApplicationContext) :
 	}
 
 	@ReactMethod
+	fun setAllowLockScreenScrubbing(allow: Boolean) {
+		AudioProController.setAllowLockScreenScrubbing(allow)
+	}
+
+	@ReactMethod
 	fun clear() {
 		AudioProController.clear()
 	}

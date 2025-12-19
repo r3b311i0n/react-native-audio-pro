@@ -360,6 +360,37 @@ export const AudioPro = {
 	},
 
 	/**
+	 * Enable or disable lock screen scrubbing/seeking
+	 *
+	 * When disabled, the seek bar on the lock screen and notification controls
+	 * will be hidden or non-interactive, while play/pause and skip buttons remain available.
+	 *
+	 * This can be called while a track is playing to immediately update the lock screen controls.
+	 *
+	 * @param allow - Whether to allow lock screen scrubbing (default: true)
+	 */
+	setAllowLockScreenScrubbing(allow: boolean) {
+		logDebug('AudioPro: setAllowLockScreenScrubbing()', allow);
+
+		const { setConfigureOptions, configureOptions, trackPlaying } = internalStore.getState();
+		setConfigureOptions({ ...configureOptions, allowLockScreenScrubbing: allow });
+
+		if (trackPlaying) {
+			if (!isValidPlayerStateForOperation('setAllowLockScreenScrubbing()')) return;
+			NativeAudioPro.setAllowLockScreenScrubbing(allow);
+		}
+	},
+
+	/**
+	 * Get whether lock screen scrubbing is currently allowed
+	 *
+	 * @returns Whether lock screen scrubbing is allowed
+	 */
+	getAllowLockScreenScrubbing() {
+		return internalStore.getState().configureOptions.allowLockScreenScrubbing ?? true;
+	},
+
+	/**
 	 * Set the frequency at which progress events are emitted
 	 *
 	 * @param ms - Interval in milliseconds (100ms to 10000ms)

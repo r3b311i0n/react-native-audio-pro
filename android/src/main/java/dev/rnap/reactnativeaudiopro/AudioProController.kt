@@ -997,6 +997,13 @@ object AudioProController {
 		}
 	}
 
+	fun setAllowLockScreenScrubbing(allow: Boolean) {
+		log("Setting allow lock screen scrubbing to", allow)
+		settingAllowLockScreenScrubbing = allow
+		// Update immediately for all connected controllers
+		AudioProPlaybackService.updateLockScreenScrubbingSetting(allow)
+	}
+
 	/**
 	 * Helper to extract header maps from a ReadableMap.
 	 */

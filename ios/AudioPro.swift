@@ -878,6 +878,19 @@ class AudioPro: RCTEventEmitter {
 		player.volume = Float(volume)
 	}
 
+	@objc(setAllowLockScreenScrubbing:)
+	func setAllowLockScreenScrubbing(allow: Bool) {
+		settingAllowLockScreenScrubbing = allow
+		log("Setting allow lock screen scrubbing to", allow)
+
+		// Update immediately if remote controls are set up
+		if isRemoteCommandCenterSetup {
+			DispatchQueue.main.async {
+				self.updateLockScreenScrubbingSetting(allowScrubbing: allow)
+			}
+		}
+	}
+
 	////////////////////////////////////////////////////////////
 	// MARK: - KVO & Notification Handlers
 	////////////////////////////////////////////////////////////
