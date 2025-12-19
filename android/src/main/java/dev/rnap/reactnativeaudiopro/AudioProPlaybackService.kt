@@ -41,7 +41,7 @@ open class AudioProPlaybackService : MediaLibraryService() {
 
 		/**
 		 * Updates the lock screen scrubbing setting for all connected controllers.
-		 * This should be called when a new track is played with a different allowLockScreenScrubbing value.
+		 * This should be called when a track is played after the allowLockScreenScrubbing configuration has changed.
 		 */
 		@OptIn(UnstableApi::class)
 		fun updateLockScreenScrubbingSetting(allowScrubbing: Boolean) {

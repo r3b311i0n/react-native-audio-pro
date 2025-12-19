@@ -310,13 +310,13 @@ type AudioProSetupOptions = {
  showSkipControls?: boolean; // Show skip/seek forward/back buttons (default: true)
  skipForwardMs?: number; // Interval in milliseconds for skip forward controls (default: 30000)
  skipBackMs?: number; // Interval in milliseconds for skip back controls (default: 30000)
+ allowLockScreenScrubbing?: boolean; // Allow scrubbing/seek from lock screen and notifications (default: true)
 };
 
 type AudioProPlayOptions = {
  autoPlay?: boolean; // Whether to start playback immediately (default: true)
  headers?: AudioProHeaders; // Custom HTTP headers for audio and artwork requests
  startTimeMs?: number; // Optional position in milliseconds to start playback from, even if autoPlay is false.
- allowLockScreenScrubbing?: boolean; // Allow scrubbing/seek from lock screen and notifications (default: true)
 };
 ```
 
