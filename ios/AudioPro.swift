@@ -385,13 +385,25 @@ class AudioPro: RCTEventEmitter {
 		MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
 
 		// Set up remote transport controls only if they haven't been set up yet
+		// Capture settings now to avoid race conditions with subsequent play() calls
+		let capturedShowNextPrev = settingShowNextPrevControls
+		let capturedShowSkip = settingShowSkipControls
+		let capturedAllowScrubbing = settingAllowLockScreenScrubbing
+		let capturedSkipForwardMs = settingSkipForwardMs
+		let capturedSkipBackMs = settingSkipBackMs
 		DispatchQueue.main.async {
 			if !self.isRemoteCommandCenterSetup {
 				UIApplication.shared.beginReceivingRemoteControlEvents()
-				self.setupRemoteTransportControls()
+				self.setupRemoteTransportControls(
+					showNextPrev: capturedShowNextPrev,
+					showSkip: capturedShowSkip,
+					allowScrubbing: capturedAllowScrubbing,
+					skipForwardMs: capturedSkipForwardMs,
+					skipBackMs: capturedSkipBackMs
+				)
 			} else {
 				// Update scrubbing setting for subsequent tracks even if remote controls are already set up
-				self.updateLockScreenScrubbingSetting()
+				self.updateLockScreenScrubbingSetting(allowScrubbing: capturedAllowScrubbing)
 			}
 		}
 
@@ -1135,7 +1147,21 @@ class AudioPro: RCTEventEmitter {
 	// MARK: - Remote Control Commands & Magic Tap Support
 	////////////////////////////////////////////////////////////
 
-	private func setupRemoteTransportControls() {
+	/// Sets up remote transport controls for the first time.
+	/// - Parameters:
+	///   - showNextPrev: Whether to show next/previous track controls
+	///   - showSkip: Whether to show skip forward/back controls
+	///   - allowScrubbing: Whether to allow lock screen scrubbing
+	///   - skipForwardMs: Skip forward interval in milliseconds
+	///   - skipBackMs: Skip back interval in milliseconds
+	/// - Note: Parameters are passed explicitly to avoid race conditions with subsequent play() calls.
+	private func setupRemoteTransportControls(
+		showNextPrev: Bool,
+		showSkip: Bool,
+		allowScrubbing: Bool,
+		skipForwardMs: Double,
+		skipBackMs: Double
+	) {
 		if isRemoteCommandCenterSetup { return }
 		let commandCenter = MPRemoteCommandCenter.shared()
 
@@ -1145,11 +1171,11 @@ class AudioPro: RCTEventEmitter {
 		commandCenter.skipForwardCommand.isEnabled = false
 		commandCenter.skipBackwardCommand.isEnabled = false
 
-		if settingShowNextPrevControls {
+		if showNextPrev {
 			// Enable next/prev, skip stays disabled
 			commandCenter.nextTrackCommand.isEnabled = true
 			commandCenter.previousTrackCommand.isEnabled = true
-		} else if settingShowSkipControls {
+		} else if showSkip {
 			// Enable skip only if next/prev are NOT shown
 			commandCenter.skipForwardCommand.isEnabled = true
 			commandCenter.skipBackwardCommand.isEnabled = true
@@ -1160,7 +1186,7 @@ class AudioPro: RCTEventEmitter {
 		commandCenter.pauseCommand.isEnabled = true
 		commandCenter.togglePlayPauseCommand.isEnabled = true
 		// Conditionally enable scrubbing/seeking from lock screen
-		commandCenter.changePlaybackPositionCommand.isEnabled = settingAllowLockScreenScrubbing
+		commandCenter.changePlaybackPositionCommand.isEnabled = allowScrubbing
 
 		// Register command targets as before (disabling just hides/prevents UI, targets are safe to always register)
 		commandCenter.skipForwardCommand.addTarget { [weak self] event in
@@ -1245,18 +1271,20 @@ class AudioPro: RCTEventEmitter {
 			return .success
 		}
 
-		commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: settingSkipForwardMs)]
-		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: settingSkipBackMs)]
+		commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: skipForwardMs)]
+		commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: skipBackMs)]
 
 		isRemoteCommandCenterSetup = true
 	}
 
 	/// Updates only the lock screen scrubbing setting without re-registering all remote control handlers.
 	/// This is called when a track is played after the allowLockScreenScrubbing configuration has changed.
-	private func updateLockScreenScrubbingSetting() {
+	/// - Parameter allowScrubbing: The scrubbing setting to apply. This parameter is passed explicitly
+	///   to avoid race conditions when multiple play() calls happen in quick succession.
+	private func updateLockScreenScrubbingSetting(allowScrubbing: Bool) {
 		let commandCenter = MPRemoteCommandCenter.shared()
-		commandCenter.changePlaybackPositionCommand.isEnabled = settingAllowLockScreenScrubbing
-		log("Updated lock screen scrubbing setting to", settingAllowLockScreenScrubbing)
+		commandCenter.changePlaybackPositionCommand.isEnabled = allowScrubbing
+		log("Updated lock screen scrubbing setting to", allowScrubbing)
 	}
 
 	private func removeRemoteTransportControls() {
