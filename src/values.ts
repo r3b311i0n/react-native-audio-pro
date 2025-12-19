@@ -105,4 +105,6 @@ export const DEFAULT_CONFIG: AudioProConfigureOptions = {
 	skipForwardMs: DEFAULT_SKIP_INTERVAL_MS,
 	/** Interval in milliseconds for skip backward controls */
 	skipBackMs: DEFAULT_SKIP_INTERVAL_MS,
+	/** Whether to allow scrubbing/seek from lock screen and notification controls */
+	allowLockScreenScrubbing: true,
 };

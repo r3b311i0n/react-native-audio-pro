@@ -74,9 +74,13 @@ export const AudioPro = {
 	 * @param options - Configuration options for the audio player
 	 */
 	configure(options: AudioProConfigureOptions): void {
-		const { setConfigureOptions, setDebug, setDebugIncludesProgress } =
-			internalStore.getState();
-		let config: AudioProConfigureOptions = { ...DEFAULT_CONFIG, ...options };
+		const {
+			configureOptions: prevConfig,
+			setConfigureOptions,
+			setDebug,
+			setDebugIncludesProgress,
+		} = internalStore.getState();
+		let config: AudioProConfigureOptions = { ...DEFAULT_CONFIG, ...prevConfig, ...options };
 		if (config.showNextPrevControls === true && config.showSkipControls === true) {
 			// If both are true, showSkipControls must be false.
 			console.warn(

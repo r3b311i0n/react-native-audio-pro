@@ -1252,7 +1252,7 @@ class AudioPro: RCTEventEmitter {
 	}
 
 	/// Updates only the lock screen scrubbing setting without re-registering all remote control handlers.
-	/// This is called when subsequent tracks are played with a different allowLockScreenScrubbing value.
+	/// This is called when a track is played after the allowLockScreenScrubbing configuration has changed.
 	private func updateLockScreenScrubbingSetting() {
 		let commandCenter = MPRemoteCommandCenter.shared()
 		commandCenter.changePlaybackPositionCommand.isEnabled = settingAllowLockScreenScrubbing

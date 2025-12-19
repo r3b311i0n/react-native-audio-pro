@@ -84,7 +84,7 @@ If the player is **buffering mid-playback** (e.g. network stalls):
 > ⚠️ Native emits **all state changes** from lock screen interactions.
 > TypeScript **does not emit state** — it only receives `STATE_CHANGED` or `REMOTE_*` where applicable.
 
-> 🔧 When `allowLockScreenScrubbing` is set to `false` in `AudioProPlayOptions`, native removes the seek bar / scrubbing command from lock screen and notification controls, so only play/pause and skip/next/prev remain available.
+> 🔧 When `allowLockScreenScrubbing` is set to `false` in `AudioProConfigureOptions`, native removes the seek bar / scrubbing command from lock screen and notification controls, so only play/pause and skip/next/prev remain available.
 
 ---
 

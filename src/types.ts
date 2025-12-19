@@ -35,6 +35,7 @@ export type AudioProConfigureOptions = {
 	showSkipControls?: boolean;
 	skipForwardMs?: number;
 	skipBackMs?: number;
+	allowLockScreenScrubbing?: boolean;
 };
 
 // ==============================
@@ -50,7 +51,6 @@ export type AudioProPlayOptions = {
 	autoPlay?: boolean;
 	headers?: AudioProHeaders;
 	startTimeMs?: number;
-	allowLockScreenScrubbing?: boolean;
 };
 
 // ==============================
